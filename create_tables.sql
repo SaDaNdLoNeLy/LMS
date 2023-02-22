@@ -26,7 +26,7 @@ create table people(
 create table staff(
 	staff_id serial not null primary key,
 	person_id int not null, --fk
-	base_salary numeric(10, 3) not null default 0 check(base_salary >= 0),
+	base_salary numeric(10, 2) not null default 0 check(base_salary >= 0),
 	hire_date date,	
 	
 	constraint fk_staff_person foreign key (person_id) references people(person_id)
@@ -38,43 +38,39 @@ create table customers(
 	total_books_borrowed int not null default 0 check(total_books_borrowed >= 0),
 	date_registered date not null,
 	ranking varchar(20) check (ranking in ('Silver', 'Gold', 'Platinum')),
-	total_spendings numeric(10, 3) default 0 check (total_spendings >= 0),
+	total_spendings numeric(10, 2) default 0 check (total_spendings >= 0),
+	
 	constraint fk_customer_person foreign key (person_id) references people(person_id)
 );
 
--- Book-related tables
-create table author(
-	author_id serial not null primary key, 
-	author_name varchar(50) not null,
-	description varchar(500)
-);
+-- -- Book-related tables
+-- create table author(
+-- 	author_id serial not null primary key, 
+-- 	author_name varchar(50) not null
+-- );
 
-create table category(
-	category_id serial not null primary key,
-	category_name varchar(50) not null
-);
+-- create table category(
+-- 	category_id serial not null primary key,
+-- 	category_name varchar(50) not null
+-- );
 
-create table publisher(
-	publisher_id serial not null primary key,
-	publisher_name varchar(50) not null,
-	country_from varchar(50)
-);
+-- create table publisher(
+-- 	publisher_id serial not null primary key,
+-- 	publisher_name varchar(50) not null,
+-- 	country_from varchar(50)
+-- );
 
 create table books(
 	ISBN varchar(20) not null primary key,
 	title varchar(50) not null,
-	description varchar(500),
-	author_id int not null, -- fk
-	category_id int not null, --fk
-	publisher_id int not null, -- fk
+	description varchar(100),
+	author_name varchar(50), -- fk
+	category varchar(50), --fk
+	publisher_name varchar(50), -- fk
 	number_of_pages int not null,
-	language_code varchar(30),
-	customer_review numeric(2,2),
+	language_code varchar(3),
+	customer_rating numeric(2,2) check(customer_review <= 10.0),
 	cur_quantity int not null check(cur_quantity > 0),
-	
-	constraint fk_author foreign key (author_id) references author(author_id),
-	constraint fk_publisher foreign key (publisher_id) references publisher(publisher_id),
-	constraint fk_category foreign key (category_id) references category(category_id)
 );
 
 
@@ -95,27 +91,38 @@ create table books(
 -- Borrow-related tables
 create table borrowlines(
 	borrowline_id serial not null primary key,
-	borrow_id int not null, --fk
+	staff_id int not null, --fk
+	customer_id int not null, --fk
 	ISBN int not null, --fk
 	quantity int not null,
-	price numeric(10, 3) not null,
-	late_fee numeric(10, 3) default 0,
+	late_fee numeric(10, 2) default 0,
 	borrow_date date not null default CURRENT_DATE,
 	due_date date not null,
 	return_date date default null,
+	sale_off numeric(2,1) default 0,
+	price numeric(10, 2) not null,
+
 	constraint fk_ISBN foreign key (ISBN) references books(ISBN),
+	constraint fk_staff foreign key (staff_id) references staff(staff_id),
+	constraint fk_customer foreign key (customer_id) references customers(customer_id),
 	constraint date_validity check(due_date >= borrow_date)
 );
 
-create table borrows(
-	borrow_id serial not null primary key,
-	staff_id int not null, --fk
-	customer_id int not null, --fk,
-	total_cost numeric(10, 3) default 0 check(total_cost >= 0),
-	constraint fk_staff foreign key (staff_id) references staff(staff_id),
-	constraint fk_customer foreign key (customer_id) references customers(customer_id)
-);
+-- create table borrows(
+-- 	borrow_id serial not null primary key,
+-- 	staff_id int not null, --fk
+-- 	customer_id int not null, --fk,
+-- 	total_cost numeric(10, 3) default 0 check(total_cost >= 0),
+	
+-- );
 
 create table shifts(
-
-)
+	shift_id serial not null primary key,
+	staff_id int not null, -- fk
+	shift_from time,
+	shift_end time,
+	shift_date date,
+	week_day int check(week_day >= 2 && week_day <=8)
+	wage_per_hr int,
+	constraint fk_shift_staffid foreign key (staff_id) references staff(staff_id)
+);
