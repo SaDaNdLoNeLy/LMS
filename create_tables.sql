@@ -1,12 +1,12 @@
 --related tables
 
-create table address(
-    address_id serial primary key,
-    street VARCHAR(100) not NULL,
-    city VARCHAR(50) not NULL,
-    country VARCHAR(50) not NULL,
-    zip_code VARCHAR(10) not NULL
-);
+-- create table address(
+--     address_id serial primary key,
+--     street VARCHAR(100) not NULL,
+--     city VARCHAR(50) not NULL,
+--     country VARCHAR(50) not NULL,
+--     zip_code VARCHAR(10) not NULL
+-- );
 
 create table people(
 	person_id serial not null primary key,
@@ -15,12 +15,13 @@ create table people(
 	person_name varchar(50) not null,
 	dob date,
 	gender varchar(2) check (gender in ('F', 'M')),
-	address_id int not null, --fk
+	house_number varchar(20),
+	street varchar(20), 
+	city varchar(20),
+	country varchar(20),
 	email varchar(50),
 	phone_number varchar(50),
-	role varchar(20) check (role in ('staff', 'customer')),
-	
-	constraint fk_address foreign key (address_id) references address(address_id)
+	role varchar(20) check (role in ('staff', 'customer'))
 );
 
 create table staff(
@@ -37,7 +38,7 @@ create table customers(
 	person_id int not null, --fk
 	total_books_borrowed int not null default 0 check(total_books_borrowed >= 0),
 	date_registered date not null,
-	ranking varchar(20) check (ranking in ('Silver', 'Gold', 'Platinum')),
+	ranking varchar(20) check (ranking in ('silver', 'gold', 'platinum')),
 	total_spendings numeric(10, 2) default 0 check (total_spendings >= 0),
 	
 	constraint fk_customer_person foreign key (person_id) references people(person_id)
