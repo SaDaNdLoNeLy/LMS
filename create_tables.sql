@@ -69,8 +69,8 @@ create table books(
 	publisher_name varchar(50), -- fk
 	number_of_pages int not null,
 	language_code varchar(3),
-	customer_rating numeric(2,2) check(customer_review <= 10.0),
-	cur_quantity int not null check(cur_quantity > 0),
+	customer_rating numeric(2,2) check(customer_rating <= 10.0),
+	cur_quantity int not null check(cur_quantity > 0)
 );
 
 
@@ -93,7 +93,7 @@ create table borrowlines(
 	borrowline_id serial not null primary key,
 	staff_id int not null, --fk
 	customer_id int not null, --fk
-	ISBN int not null, --fk
+	ISBN varchar(30) not null, --fk
 	quantity int not null,
 	late_fee numeric(10, 2) default 0,
 	borrow_date date not null default CURRENT_DATE,
@@ -122,7 +122,8 @@ create table shifts(
 	shift_from time,
 	shift_end time,
 	shift_date date,
-	week_day int check(week_day >= 2 && week_day <=8)
+	week_day int check(week_day >= 2 and week_day <=8),
 	wage_per_hr int,
+	wage_final numeric(4, 2) default 0,
 	constraint fk_shift_staffid foreign key (staff_id) references staff(staff_id)
 );
