@@ -120,3 +120,5 @@ create trigger check_book_availability_trigger
 before insert on borrowlines
 for each row
 execute function check_book_availability();
+
+-- Addin trigger
