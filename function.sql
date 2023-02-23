@@ -9,7 +9,7 @@ return query
     from staff st 
     join (select sum(wage_final) as wage_per_month
             from shifts sh
-            where date_part('month', sh.shift_from) = month_sal and date_part('year', sh.shift_from) = year_sal
+            where date_part('month', sh.shift_date) = month_sal and date_part('year', sh.shift_date) = year_sal
             group by sh.staff_id
         ) shm on st.staff_id = shm.staff_id
     join people pp on pp.person_id = st.person_id;         
@@ -18,16 +18,16 @@ $$
 language plpgsql;
 
 --cal shift hours
-create or replace function cal_shift_hour(month_sal int, year_sal int)
+create or replace function cal_shift_hour(date_from date, date_end date)
 returns table(staff_idf int, person_n varchar(50), shift_h numeric(3,2))
 as $$
 begin
 return query
     select st.staff_id, pp.person_name, shm.hour_per_month
     from staff st
-    join (select sum(cast(extract(epoch from (shift_end - shift_from))/3600 as numeric(3,2))) as hour_per_month
+    join (select sum(cast(extract(epoch from (shift_end - shift_from))/3600 as numeric(4,2))) as hour_per_month
             from shifts sh
-            where date_part('month', sh.shift_from) = month_sal and date_part('year', sh.shift_from) = year_sal
+            where sh.shift_date >= date_from and sh.shift_date <= date_end
             group by sh.staff_id
         ) shm on st.staff_id = shm.staff_id
     join people pp on pp.person_id = st.person_id;  
@@ -56,12 +56,13 @@ if not exists (select * from people pp
 then
     insert into people(account_name, pass, person_name, dob, gender, house_number, street, city, country, email, phone_number, rolef)
     values (account_namef, passf, person_namef, dobf, genderf, house_numberf, streetf, cityf, countryf, emailf, phone_numberf, rolef);
-    
 end if;
-end
+end;
 $$
 language plpgsql;
 
+
+--Staff
 create or replace function add_customer(account_namef varchar(50), 
                                         passf varchar(50), 
                                         person_namef varchar(50), 
@@ -85,8 +86,48 @@ then
     values (account_namef, passf, person_namef, dobf, genderf, house_numberf, streetf, cityf, countryf, emailf, phone_numberf, rolef);
     
 end if;
-end
+end;
 $$
 language plpgsql;
 
-create or repace
+--Customer
+
+create or replace function search_book(titlef varchar(50))
+returns table(ISBN varchar(20), title varchar(50), description varchar(100), author_name varchar(50),
+            category varchar(50), publisher_name varchar(50), number_of_pages int, language_code varchar(3), customer_rating numeric(2,2), cur_quantity int)
+as $$
+begin
+select * from books where books.title = titlef;
+end;
+$$
+language plpgsql;
+
+create or replace function borrow_book( ISBNf varchar(20),
+                                        staff_idf int,
+                                        customer_idf int, 
+                                        quantityf int, 
+                                        borrow_time interval)     
+returns void
+as $$
+begin
+if not exists (select * from books b where b.ISBN = ISBNf and b.cur_quantity >0) and (quantityf<5)
+then
+    insert into borrowlines(staff_id, customer_id, ISBN, quantity, borrow_date, due_date)
+    values (staff_idf, customer_idf, ISBNf, quantityf, CURRENT_DATE, CURRENT_DATE+borrow_time);
+end if;
+end;
+$$
+language plpgsql;
+
+create or replace function return_book (ISBNf varchar(20),
+                                        customer_idf int,
+                                        borrow_datef date,
+                                        quantityf int)
+returns void
+as $$
+begin
+update borrowlines set return_date = CURRENT_DATE 
+where ISBN = ISBNf and customer_id = customer_idf 
+and borrow_datef = borrow_date and quantityf = quantity
+end;
+language plpgsql;
