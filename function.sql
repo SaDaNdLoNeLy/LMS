@@ -1,18 +1,14 @@
 --Admin
---cal salary
+--Calculate salary
 create or replace function cal_salary(month_sal int, year_sal int)
-returns table(staff_idf int,person_n varchar(50), salary numeric(10,2))
+returns table(staff_idf int, salary numeric(10,2))
 as $$
 begin
 return query 
-    select st.staff_id, person_name, (st.base_salary + shm.wage_per_month)
-    from staff st 
-    join (select sum(wage_final) as wage_per_month
-            from shifts sh
-            where date_part('month', sh.shift_from) = month_sal and date_part('year', sh.shift_from) = year_sal
-            group by sh.staff_id
-        ) shm on st.staff_id = shm.staff_id
-    join people pp on pp.person_id = st.person_id;         
+    select staff_id, sum(wage_final)
+	from shifts
+	where extract(month from shift_date) = month_sal and extract(year from shift_date) = year_sal
+	group by (staff_id);
 end;
 $$
 language plpgsql;

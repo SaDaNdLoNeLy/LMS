@@ -1,13 +1,5 @@
 --related tables
 
--- create table address(
---     address_id serial primary key,
---     street VARCHAR(100) not NULL,
---     city VARCHAR(50) not NULL,
---     country VARCHAR(50) not NULL,
---     zip_code VARCHAR(10) not NULL
--- );
-
 create table people(
 	person_id serial not null primary key,
 	account_name varchar(50) not null,
@@ -70,10 +62,9 @@ create table books(
 	publisher_name varchar(50), -- fk
 	number_of_pages int not null,
 	language_code varchar(3),
-	customer_rating numeric(2,2) check(customer_rating <= 10.0),
+	customer_rating numeric(2,1) check(customer_rating <= 10.0),
 	cur_quantity int not null check(cur_quantity > 0)
 );
-
 
 -- create table bookitems(
 -- 	item_id int not null primary key,
