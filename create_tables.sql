@@ -102,6 +102,7 @@ create table borrowlines(
 	return_date date default null,
 	sale_off numeric(2,1) default 0,
 	price numeric(10, 2) not null,
+	rating numeric(2,2) default null check(customer_rating <= 10.0),
 
 	constraint fk_ISBN foreign key (ISBN) references books(ISBN),
 	constraint fk_staff foreign key (staff_id) references staff(staff_id),
@@ -127,5 +128,5 @@ create table shifts(
 	wage_per_hr int,
 	wage_final numeric(4, 2) default 0,
 	constraint fk_shift_staffid foreign key (staff_id) references staff(staff_id),
-	constraint hout_validity check(shift_from <= shift_end)
+	constraint hour_validity check(shift_from <= shift_end)
 );
