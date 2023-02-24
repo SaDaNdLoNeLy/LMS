@@ -19,11 +19,14 @@ create table people(
 create table staff(
 	staff_id serial not null primary key,
 	person_id int not null, --fk
-	base_salary numeric(10, 2) not null default 0 check(base_salary >= 0),
+	base_salary numeric(10, 2) not null default 15 check(base_salary >= 0),
 	hire_date date,	
 	
 	constraint fk_staff_person foreign key (person_id) references people(person_id)
 );
+
+alter table staff
+alter column base_salary set default 15
 
 create table customers(
 	customer_id serial not null primary key,

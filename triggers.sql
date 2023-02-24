@@ -179,7 +179,7 @@ end;
 $$ 
 language plpgsql;
 
-drop trigger check_book_availability_trigger on borrowlines
+-- drop trigger check_book_availability_trigger on borrowlines
 create trigger check_book_availability_trigger
 before insert on borrowlines
 for each row
