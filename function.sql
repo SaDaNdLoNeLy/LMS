@@ -79,15 +79,26 @@ $$
 language plpgsql;
 
 create or replace function find_shift_info(time_from timestamp, time_to timestamp)
-returns shift_list
+returns table(
+	shift_id int,
+	staff_id int,
+	staff_name varchar(50),
+	shift_from time,
+	shift_end time,
+	shift_date date,
+	week_day int,
+	wage_per_hr int,
+	wage_final numeric(4, 2)
+)
 as $$
 begin
-select sh.*, pp.person_name from shift sh 
+return query
+select sh.shift_id, sh.staff_id, pp.person_name, sh.shift_from, sh.shift_end, sh.shift_date, sh.week_day, sh.wage_per_hr, sh.wage_final from shift sh 
 join staff st on sh.staff_id = st.staff_id
 join people pp on pp.person_id = st.person_id
 where (time_from::timestamp::time < sh.shift_from) 
 and (time_from::timestamp::time > sh.shift_end)
-and (sh.shift_date between time_from::timestamp::date and time_end::timestamp::date)
+and (sh.shift_date between time_from::timestamp::date and time_end::timestamp::date);
 end;
 $$
 language plpgsql;
