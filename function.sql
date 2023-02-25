@@ -181,7 +181,7 @@ then
     set return_date = CURRENT_DATE,
         rating = ratingf
     where ISBN = ISBNf and customer_id = customer_idf 
-    and borrow_datef = borrow_date and quantityf = quantity
+    and borrow_datef = borrow_date and quantityf = quantity;
 end if;
 end;
 $$
@@ -190,25 +190,49 @@ language plpgsql;
 create or replace function list_books(
     categoryf varchar(50)
 )
-returns cataloge
+returns table(
+	ISBN varchar(20),
+	title varchar(50),
+	description varchar(100),
+	author_name varchar(50),
+	category varchar(50),
+	publisher_name varchar(50),
+	number_of_pages int,
+	language_code varchar(3),
+	customer_rating numeric(2,2),
+	cur_quantity int
+)
 as $$
 begin
-if (categoryf is null) then
-    select * from books order by customer_rating;
+if categoryf is null then
+	return query
+    select * from books order by customer_rating DESC;
 else
-    select * from books where books.category = order by customer_rating;
+	return query
+    select * from books where books.category = categoryf order by customer_rating DESC;
 end if;
 end;
 $$
 language plpgsql;
 
 create or replace function check_history(customer_idf int)
-return hist 
+returns table(
+	borrow_id int, 
+	staff_id int, 
+	customer_id int,
+	book_title varchar(50),
+	quantity int,
+	borrow_date date,
+	due_date date,
+	return_date date,
+	expenditure numeric(10,2),
+	rating numeric(2,2))
 as $$
 begin
-select b.title, bl.* from borrowlines bl 
+return query
+select bl.borrowline_id, bl.staff_id, bl.customer_id, b.title, bl.quantity, bl.borrow_date, bl.due_date, bl.return_date, bl.price, bl.rating from borrowlines bl 
 join books b on bl.ISBN = b.ISBN
-where bl.customer_id = customer_idf
+where bl.customer_id = customer_idf;
 end;
 $$
 language plpgsql;
