@@ -21,7 +21,10 @@ create table staff(
 	base_salary numeric(10, 2) not null default 15 check(base_salary >= 0),
 	hire_date date,	
 	
-	constraint fk_staff_person foreign key (person_id) references people(person_id)
+	constraint fk_staff_person 
+		foreign key (person_id) references people(person_id)
+		on delete set null
+		on update cascade
 );
 
 create table customers(
@@ -30,7 +33,10 @@ create table customers(
 	date_registered date not null,
 	total_spendings numeric(10, 2) default 0 check (total_spendings >= 0),
 	
-	constraint fk_customer_person foreign key (person_id) references people(person_id)
+	constraint fk_customer_person 
+		foreign key (person_id) references people(person_id)
+		on delete set null
+		on update cascade
 );
 
 create table books(
@@ -58,9 +64,15 @@ create table borrowlines(
 	return_date date default null,
 	rating numeric(2, 2) default null check(rating between 0 and 10),
 
-	constraint fk_ISBN foreign key (ISBN) references books(ISBN),
-	constraint fk_staff foreign key (staff_id) references staff(staff_id),
-	constraint fk_customer foreign key (customer_id) references customers(customer_id),
+	constraint fk_ISBN foreign key (ISBN) references books(ISBN)
+		on delete set null
+		on update cascade,
+	constraint fk_staff foreign key (staff_id) references staff(staff_id)
+		on delete set null
+		on update cascade,
+	constraint fk_customer foreign key (customer_id) references customers(customer_id)
+		on delete set null
+		on update cascade,
 	constraint date_validity check(due_date >= borrow_date)
 );
 
@@ -71,4 +83,6 @@ create table shifts(
 	shift_end time,
 	shift_date date,
 	constraint fk_shift_staffid foreign key (staff_id) references staff(staff_id)
+		on delete set null
+		on update cascade
 );
