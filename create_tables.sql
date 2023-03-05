@@ -52,6 +52,8 @@ create table books(
 	base_price numeric(4,2) not null check(base_price > 0)
 );
 
+alter table books alter column base_price type numeric(10,2);
+alter table borrowlines alter column rating type numeric(4,2);
 -- Borrow-related tables
 create table borrowlines(
 	borrowline_id serial not null primary key,

@@ -27,55 +27,6 @@ after update on borrowlines
 for each row
 execute function calculate_late_fee();
 
--- Create new staff or customer
-create or replace function add_person() 
-returns trigger as 
-$$
-begin
-  if new.role = 'staff' then
-    insert into staff (staff_id, person_id, base_salary, hire_date)
-    values (default, new.person_id, default, current_date);
-  end if;
-  
-  if new.role = 'customer' then
-    insert into customers (customer_id, person_id, date_registered, ranking)
-    values (default, new.person_id, current_date, 'silver');
-  end if;
-  
-  return new;
-end;
-$$ language plpgsql;
-
-create trigger add_person_trigger
-after insert on people
-for each row
-execute function add_person();
-
--- Add a new book to the library
-create or replace function add_book(
- 	book_ISBN varchar(20),
-    book_title varchar(50),
-    book_description varchar(100),
-    book_author_name varchar(50),
-    book_category varchar(50),
-    book_publisher_name varchar(50),
-    book_number_of_pages int,
-    book_language_code varchar(3),
-    book_customer_rating numeric(2,2),
-    book_cur_quantity int) 
-returns void as 
-$$
-begin
-	if not exists (select 1 from books where ISBN = book_ISBN) then
-		insert into books (ISBN, title, description, author_name, category, publisher_name, number_of_pages, language_code, customer_rating, cur_quantity)
-  		values (book_ISBN, book_title, book_description, book_author_name, book_category, book_publisher_name, book_number_of_pages, book_language_code, book_customer_rating, book_cur_quantity);
-	else
-	update books 
-	set cur_quantity = cur_quantity + book_cur_quantity
-	where ISBN = book_ISBN;
-	end if;
-end;
-$$ language plpgsql;
 
 -- Update sale_off amount and total_spending of customer after each borrow, and update ranking if necessary
 create or replace function update_customer_ranking()
@@ -132,35 +83,7 @@ after insert on borrowlines
 for each row
 execute function update_customer_ranking();
 
---
-create or replace function update_cur_quantity() 
-returns trigger as 
-$$
-declare
-    borrowed_quantity integer;
-begin
-    if (TG_OP = 'INSERT') then  -- if a book is borrowed
-        borrowed_quantity := new.quantity;
-        update books 
-		set cur_quantity = cur_quantity - borrowed_quantity  
-		where ISBN = new.ISBN;
-   
-	elsif (TG_OP = 'UPDATE' and old.return_date is null and new.return_date is not null) then  -- if a book is returned
-        borrowed_quantity := new.quantity;
-        update books 
-		set cur_quantity = cur_quantity + borrowed_quantity 
-		where ISBN = new.ISBN;
-    end if;
-    return new;
-end;
-$$ 
-language plpgsql;
 
--- drop trigger update_cur_quantity_trigger on borrowlines
-create trigger update_cur_quantity_trigger
-after insert or update on borrowlines
-for each row
-execute function update_cur_quantity();
 
 -- Check availability of book before borrow
 create or replace function check_book_availability() 
