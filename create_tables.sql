@@ -49,7 +49,7 @@ create table books(
 	number_of_pages int not null,
 	language_code varchar(3),
 	cur_quantity int not null check(cur_quantity > 0),
-	base_price numeric(4,2) not null check(base_price > 0)
+	base_price numeric(6,2) not null check(base_price > 0)
 );
 
 alter table books alter column base_price type numeric(10,2);
@@ -64,7 +64,7 @@ create table borrowlines(
 	borrow_date date not null default CURRENT_DATE,
 	due_date date not null,
 	return_date date default null,
-	rating numeric(2, 2) default null check(rating between 0 and 10),
+	rating numeric(4, 2) default null check(rating between 0 and 10),
 
 	constraint fk_ISBN foreign key (ISBN) references books(ISBN)
 		on delete set null
@@ -87,4 +87,5 @@ create table shifts(
 	constraint fk_shift_staffid foreign key (staff_id) references staff(staff_id)
 		on delete set null
 		on update cascade
+	constraint shift_time_check check(shift_end > shift_from)
 );
