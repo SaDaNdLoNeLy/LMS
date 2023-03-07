@@ -73,7 +73,8 @@ $$ language plpgsql;
 -- Return book
 create or replace function return_book(
 	bl_id int,
-	date_of_return date
+	date_of_return date,
+	rate numeric(4,2)
 )
 returns void
 as $$
@@ -86,7 +87,7 @@ then
 	raise exception 'There was not any borrow with this ID!';
 else 
 	update borrowlines
-	set return_date = date_of_return
+	set return_date = date_of_return, rating = rate
 	where borrowlines.borrowline_id = bl_id;
     
 end if;
@@ -207,5 +208,19 @@ begin
 		where shift_date between date_start and date_finish
 		group by staff_id;
 	) salary_info si on si.staff_id = s.staff_id;
+end;
+language plpgsql;
+
+
+create or replace function getRating(ISBNf int)
+returns numeric(4,2)
+as $$
+declare 
+rate numeric(4,2);
+begin
+	select avg(bl.rating) into rate
+	from borrowlines bl
+	where bl.ISBN = ISBNf;
+	return rate
 end;
 language plpgsql;
