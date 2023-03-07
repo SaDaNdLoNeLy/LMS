@@ -77,9 +77,24 @@ as $$
 declare 
 weekday int;
 shift_last numeric(4,2);
+salary numeric(6,2);
 begin 
-    select 
+    select extract(isodow from shift_date)+1, extract(epoch from (shift_end - shift_from)/3600) into weekday, shift_last
+    from shifts;
+
+    select s.base_salary
+    into salary
+    from shifts sh join staff s on sh.staff_id = s.staff_id;
+
+    if (weekday between 2 and 6) then
+        return salary*shift_last;
+    elsif (weekday in (7,8)) then   
+        return 1.5*salary*shift_last;
+    end if;
 end;
 $$
 language plpgsql;
+
+create or replace function getSalary(date_start date, date_end date)
+returns table()
 
