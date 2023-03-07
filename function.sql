@@ -96,5 +96,5 @@ $$
 language plpgsql;
 
 create or replace function getSalary(date_start date, date_end date)
-returns table()
+returns query;
 
