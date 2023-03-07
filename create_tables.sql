@@ -62,13 +62,7 @@ create table borrowlines(
 	borrow_date date not null default CURRENT_DATE,
 	due_date date not null,
 	return_date date default null,
-<<<<<<< HEAD
-	sale_off numeric(2,1) default 0,
-	price numeric(10, 2) not null,
-	rating numeric(2,2) default null check(customer_rating <= 10.0),
-=======
 	rating numeric(4, 2) default null check(rating between 0 and 10),
->>>>>>> main
 
 	constraint fk_ISBN foreign key (ISBN) references books(ISBN)
 		on delete set null
