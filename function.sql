@@ -1,9 +1,10 @@
---Admin
---cal salary
-create or replace function cal_salary(month_sal int, year_sal int)
-returns table(staff_idf int,person_n varchar(50), salary numeric(10,2))
+create or replace function getRanking(CID int)
+returns varchar(10) 
 as $$
+declare 
+spending numeric(10,2);
 begin
+<<<<<<< HEAD
 return query 
     select st.staff_id, pp.person_name, (st.base_salary + shm.wage_on_shift)
     from staff st 
@@ -13,15 +14,72 @@ return query
             group by sh.staff_id
         ) shm on st.staff_id = shm.staff_id
     join people pp on pp.person_id = st.person_id;         
+=======
+    select c.total_spendings into spending from customers c where c.customer_id = CID; 
+    if spending >= 500 then
+        return 'Diamond';
+    elsif spending >= 200 then 
+        return 'Gold';
+    else 
+        return 'Silver';
+end if;
+end;
+$$ 
+language plpgsql;
+
+create or replace function getSaleOff(CID int)
+returns numeric(3,1)
+as $$
+declare 
+spending numeric(10,2);
+begin
+    select c.total_spendings into spending from customers c where c.customer_id = CID; 
+    if spending >= 500 then
+        return 0.2;
+    elsif spending >= 200 then 
+        return 0.1;
+    else 
+        return 0;
+end if;
+end;
+$$ 
+language plpgsql;
+
+create or replace function getLateFee(BID int)
+returns numeric(6,2)
+as $$
+declare
+due_d date;
+return_d date;
+begin
+select bl.return_date, bl.due_date into return_d, due_d from borrowlines bl where bl.borrowline_id = BID;
+if (return_d is not null and return_d > due_d)
+then  
+    return  2*(return_d::date - due_d::date);
+elsif (return_d is not null and return_d < due_d)
+then
+    return 0;
+end if;
+>>>>>>> main
 end;
 $$
 language plpgsql;
 
+<<<<<<< HEAD
 --cal shift hours
 create or replace function cal_shift_hour(date_from date, date_end date)
 returns table(staff_idf int, person_n varchar(50), shift_h numeric(3,2))
+=======
+create or replace function getFinalPrice(BID int)
+returns numeric(10,2)
+>>>>>>> main
 as $$
+declare
+saleoff numeric(2,1);
+price numeric(4,2);
+latefee numeric(4,1);
 begin
+<<<<<<< HEAD
 return query
     select st.staff_id, pp.person_name, shm.hour_per_month
     from staff st
@@ -31,10 +89,19 @@ return query
             group by sh.staff_id
         ) shm on st.staff_id = shm.staff_id
     join people pp on pp.person_id = st.person_id;  
+=======
+    select getSaleOff(bl.customer_id), getLateFee(bl.borrowline_id) into saleoff, latefee 
+    from borrowlines bl join customers c on bl.customer_id = c.customer_id;
+    select (bl.due_date::date - bl.borrow_date::date)*0.01*b.base_price into price
+    from borrowlines bl join books b on bl.ISBN = b.ISBN;
+    return price*(1-saleoff) + latefee;
+    
+>>>>>>> main
 end;
 $$
 language plpgsql;
 
+<<<<<<< HEAD
 create or replace function add_person(
     account_namef varchar(50), 
     passf varchar(50), 
@@ -59,10 +126,21 @@ then
     insert into people(account_name, pass, person_name, dob, gender, house_number, street, city, country, email, phone_number, rolef)
     values (account_namef, passf, person_namef, dobf, genderf, house_numberf, streetf, cityf, countryf, emailf, phone_numberf, rolef);
 end if;
+=======
+create or replace function getShiftWage(SID int)
+returns numeric(8,2)
+as $$
+declare 
+weekday int;
+shift_last numeric(4,2);
+begin 
+    select 
+>>>>>>> main
 end;
 $$
 language plpgsql;
 
+<<<<<<< HEAD
 create or replace function add_shift(
     staff_idf int,
     shift_fromf time,
@@ -247,3 +325,5 @@ where bl.customer_id = customer_idf;
 end;
 $$
 language plpgsql;
+=======
+>>>>>>> main
