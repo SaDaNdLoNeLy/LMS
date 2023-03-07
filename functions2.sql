@@ -196,21 +196,25 @@ $$
 language plpgsql;
 
 create or replace function getSalary(date_start date, date_finish date)
-returns query
+returns table(
+	staff_id int,
+	staff_name varchar(50),
+	salary numeric(10,2)
+)
 as $$
 begin
-	select s.staff_id, si.sal
+	select s.staff_id, pp.person_name, si.sal
 	from shifts sh join staff s on s.staff_id = sh.staff_id
 	join people pp on pp.person_id = s.person_id 
 	join (
 		select staff_id, sum(getShiftWage(shift_id)) as sal
 		from shifts
 		where shift_date between date_start and date_finish
-		group by staff_id;
-	) salary_info si on si.staff_id = s.staff_id;
+		group by staff_id
+	) salary_info on salary_info.staff_id = s.staff_id;
 end;
+$$
 language plpgsql;
-
 
 create or replace function getRating(ISBNf int)
 returns numeric(4,2)
@@ -221,6 +225,7 @@ begin
 	select avg(bl.rating) into rate
 	from borrowlines bl
 	where bl.ISBN = ISBNf;
-	return rate
+	return rate;
 end;
+$$
 language plpgsql;
