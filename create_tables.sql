@@ -84,6 +84,6 @@ create table shifts(
 	shift_date date,
 	constraint fk_shift_staffid foreign key (staff_id) references staff(staff_id)
 		on delete set null
-		on update cascade
+		on update cascade,
 	constraint shift_time_check check(shift_end > shift_from)
 );
