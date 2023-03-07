@@ -193,4 +193,10 @@ $$
 language plpgsql;
 
 create or replace function getSalary(date_start date, date_end date)
-returns query;
+returns query
+as $$
+begin
+	select s.staff_id, 
+	from shifts sh join staff s on s.staff_id = sh.staff_id
+end;
+language plpgsql;
