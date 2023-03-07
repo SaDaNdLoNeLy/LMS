@@ -94,6 +94,8 @@ end
 $$
 language plpgsql;
 
+
+
 --ultil func
 create or replace function getRanking(CID int)
 returns varchar(10) 
@@ -192,5 +194,18 @@ end;
 $$
 language plpgsql;
 
-create or replace function getSalary(date_start date, date_end date)
-returns query;
+create or replace function getSalary(date_start date, date_finish date)
+returns query
+as $$
+begin
+	select s.staff_id, si.sal
+	from shifts sh join staff s on s.staff_id = sh.staff_id
+	join people pp on pp.person_id = s.person_id 
+	join (
+		select staff_id, sum(getShiftWage(shift_id)) as sal
+		from shifts
+		where shift_date between date_start and date_finish
+		group by staff_id;
+	) salary_info si on si.staff_id = s.staff_id;
+end;
+language plpgsql;
