@@ -10,6 +10,10 @@ begin
         update books 
 		set cur_quantity = cur_quantity - borrowed_quantity  
 		where ISBN = new.ISBN;
+		
+		update customers
+		set total_spendings = total_spendings + get_final_price(new.borrowline_id) - get_late_fee(new.borrowline_id)
+		where customer_id = new.customer_id;
    
 	elsif (TG_OP = 'UPDATE' and old.return_date is null and new.return_date is not null) then  -- if a book is returned
         borrowed_quantity := new.quantity;

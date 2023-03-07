@@ -126,7 +126,7 @@ $$
 language plpgsql;
 
 --ultil func
-create or replace function getRanking(CID int)
+create or replace function get_ranking(CID int)
 returns varchar(10) 
 as $$
 declare 
@@ -144,7 +144,7 @@ end;
 $$ 
 language plpgsql;
 
-create or replace function getSaleOff(CID int)
+create or replace function get_sale_off(CID int)
 returns numeric(3,1)
 as $$
 declare 
@@ -162,7 +162,7 @@ end;
 $$ 
 language plpgsql;
 
-create or replace function getLateFee(BID int)
+create or replace function get_late_fee(BID int)
 returns numeric(6,2)
 as $$
 declare
@@ -176,12 +176,14 @@ then
 elsif (return_d is not null and return_d < due_d)
 then
     return 0;
+else
+	return 0;
 end if;
 end;
 $$
 language plpgsql;
 
-create or replace function getFinalPrice(BID int)
+create or replace function get_final_price(BID int)
 returns numeric(10,2)
 as $$
 declare
@@ -189,30 +191,35 @@ saleoff numeric(2,1);
 price numeric(4,2);
 latefee numeric(4,1);
 begin
-    select getSaleOff(bl.customer_id), getLateFee(bl.borrowline_id) into saleoff, latefee 
+    select get_sale_off(bl.customer_id), get_late_fee(BID) into saleoff, latefee 
     from borrowlines bl join customers c on bl.customer_id = c.customer_id;
     select (bl.due_date::date - bl.borrow_date::date)*0.01*b.base_price into price
-    from borrowlines bl join books b on bl.ISBN = b.ISBN;
+    from borrowlines bl join books b on bl.ISBN = b.ISBN;	
     return price*(1-saleoff) + latefee;
     
 end;
 $$
 language plpgsql;
 
-create or replace function getShiftWage(SID int)
+create or replace function get_shift_wage(SID int)
 returns numeric(8,2)
 as $$
 declare 
 weekday int;
 shift_last numeric(4,2);
 salary numeric(6,2);
+c_staff_id int;
 begin 
     select extract(isodow from shift_date)+1, extract(epoch from (shift_end - shift_from)/3600) into weekday, shift_last
-    from shifts;
-
+    from shifts
+	where shift_id = SID;
+	
+	select staff_id into c_staff_id
+	from shifts where shift_id = SID;
+	
     select s.base_salary
     into salary
-    from shifts sh join staff s on sh.staff_id = s.staff_id;
+    from staff s where staff_id = c_staff_id;
 
     if (weekday between 2 and 6) then
         return salary*shift_last;
@@ -223,7 +230,7 @@ end;
 $$
 language plpgsql;
 
-create or replace function getSalary(date_start date, date_finish date)
+create or replace function get_salary(date_start date, date_finish date)
 returns table(
 	staff_id int,
 	staff_name varchar(50),
@@ -231,20 +238,24 @@ returns table(
 )
 as $$
 begin
-	select s.staff_id, pp.person_name, si.sal
+	return query select distinct s.staff_id, pp.person_name, salary_info.sal
 	from shifts sh join staff s on s.staff_id = sh.staff_id
 	join people pp on pp.person_id = s.person_id 
 	join (
-		select staff_id, sum(getShiftWage(shift_id)) as sal
-		from shifts
-		where shift_date between date_start and date_finish
-		group by staff_id
+		select s3.staff_id, sum(wage_info.sal) as sal
+		from
+		(
+			select s2.staff_id, get_shif_wage(s2.shift_id) as sal
+			from shifts s2
+			where shift_date between date_start and date_finish
+		) as wage_info join shifts s3 on wage_info.staff_id = s3.staff_id
+		group by s3.staff_id
 	) salary_info on salary_info.staff_id = s.staff_id;
 end;
 $$
 language plpgsql;
 
-create or replace function getRating(ISBNf int)
+create or replace function get_rating(ISBNf varchar(20))
 returns numeric(4,2)
 as $$
 declare 
