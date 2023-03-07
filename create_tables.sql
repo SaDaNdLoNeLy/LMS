@@ -88,15 +88,7 @@ create table shifts(
 	shift_from time,
 	shift_end time,
 	shift_date date,
-<<<<<<< HEAD
-	week_day int check(week_day >= 2 and week_day <=8),
-	wage_per_hr int,
-	wage_final numeric(4, 2) default 0,
-	constraint fk_shift_staffid foreign key (staff_id) references staff(staff_id),
-	constraint hour_validity check(shift_from <= shift_end)
-=======
 	constraint fk_shift_staffid foreign key (staff_id) references staff(staff_id)
 		on delete set null
 		on update cascade
->>>>>>> main
 );
