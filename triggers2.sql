@@ -76,3 +76,42 @@ create trigger check_book_availability_trigger
 before insert on borrowlines
 for each row
 execute function check_book_availability();
+
+-- Check if the same staff has 2 overlapping shifts
+create or replace function check_shift_overlap()
+returns trigger as
+$$
+declare
+	shift_exists int;
+begin
+	if tg_op = 'INSERT' then
+        select count(*) into shift_exists
+		from shifts
+		where staff_id = new.staff_id and shift_date = new.shift_date and (
+			(new.shift_from <= shift_end and new.shift_from >= shift_from) or 
+			(new.shift_end <= shift_end and new.shift_end >= shift_from) or 
+			(new.shift_from <= shift_from and new.shift_end >= shift_end)
+		);
+	elsif tg_op = 'UPDATE' then
+		select count(*) into shift_exists
+		from shifts
+		where staff_id = new.staff_id and shift_date = new.shift_date and (shift_id != old.shift_id) and (
+			(new.shift_from <= shift_end and new.shift_from >= shift_from) or 
+			(new.shift_end <= shift_end and new.shift_end >= shift_from) or 
+			(new.shift_from <= shift_from and new.shift_end >= shift_end)
+		);
+    end if;
+	
+
+	if shift_exists > 0 then
+		raise exception 'Shift overlaps with existing shift for staff % on %', new.staff_id, new.shift_date;
+	end if;
+	return new;
+end;
+$$
+language plpgsql;
+
+create trigger check_shift_overlap
+before insert or update on shifts
+for each row
+execute function check_shift_overlap();

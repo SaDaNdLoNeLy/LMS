@@ -94,6 +94,36 @@ end
 $$
 language plpgsql;
 
+-- Add shift
+create or replace function add_shift(
+	staff_id int,
+	shift_from time,
+	shift_end time,
+	shift_date date
+)
+returns void
+as $$
+begin 
+	insert into shifts(staff_id, shift_from, shift_end, shift_date) values (staff_id, shift_from, shift_end, shift_date);
+end
+$$
+language plpgsql;
+
+create or replace function update_shift(
+	fshift_id int,
+	fshift_from time,
+	fshift_end time,
+	fshift_date date
+)
+returns void
+as $$
+begin 
+	update shifts set shift_from = fshift_from, shift_end = fshift_end, shift_date = fshift_date 
+	where shift_id = fshift_id;
+end
+$$
+language plpgsql;
+
 --ultil func
 create or replace function getRanking(CID int)
 returns varchar(10) 
