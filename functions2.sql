@@ -188,11 +188,11 @@ returns numeric(10,2)
 as $$
 declare
 saleoff numeric(2,1);
-price numeric(4,2);
-latefee numeric(4,1);
+price numeric(10,2);
+latefee numeric(10,2);
 begin
-    select get_sale_off(bl.customer_id), get_late_fee(BID) into saleoff, latefee 
-    from borrowlines bl join customers c on bl.customer_id = c.customer_id;
+    select get_sale_off(customer_id), get_late_fee(BID) into saleoff, latefee 
+    from borrowlines;
     select (bl.due_date::date - bl.borrow_date::date)*0.01*b.base_price into price
     from borrowlines bl join books b on bl.ISBN = b.ISBN;	
     return price*(1-saleoff) + latefee;
